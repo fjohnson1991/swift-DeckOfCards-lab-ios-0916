@@ -8,13 +8,16 @@
 
 import UIKit
 
-
-
 class CardView: UIView {
     
     @IBOutlet var contentView: UIView!
     @IBOutlet weak var imageView: UIImageView!
     
+    weak var card: Card! {
+        didSet {
+            updateViewToReflectNewCard()
+        }
+    }
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -34,9 +37,6 @@ class CardView: UIView {
         backgroundColor = UIColor.clear
         setupGestureRecognizer()
     }
-    
- 
-    
 }
 
 
@@ -44,11 +44,16 @@ class CardView: UIView {
 extension CardView {
     
     fileprivate func updateViewToReflectNewCard() {
-        
-        // TODO: Update the view accordingly
-        
+        if card.image == nil {
+            card.downloadImage(with: { (success) in
+                OperationQueue.main.addOperation {
+                    self.imageView.image = self.card.image
+                }
+                
+            })
+            
+        }
     }
-
 }
 
 
@@ -57,18 +62,20 @@ extension CardView {
     
      func setupGestureRecognizer() {
         
-        // TODO: Setup Pan Gesture Recognizer
-        
-        
+        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(viewMoved))
+        self.addGestureRecognizer(panGesture)
         
     }
     
      func viewMoved(_ gesture: UIPanGestureRecognizer) {
         
-        // TODO: Update self.center to reflect the new center
-        
+        let translation = gesture.translation(in: contentView)
+        if let view = gesture.view {
+            view.center = CGPoint(x: view.center.x + translation.x,
+                                  y: view.center.y + translation.y)
+        }
+        gesture.setTranslation(CGPoint.zero, in: contentView)
     }
-    
 }
 
 
@@ -83,5 +90,4 @@ extension UIView {
         leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
         rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
     }
-    
 }
